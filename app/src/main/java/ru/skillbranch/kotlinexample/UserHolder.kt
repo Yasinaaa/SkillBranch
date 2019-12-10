@@ -1,6 +1,6 @@
-package ru.skillbranch.kotlinexemple
+package ru.skillbranch.kotlinexample
 
-import ru.skillbranch.kotlinexemple.User
+import ru.skillbranch.kotlinexample.User
 import java.util.regex.Pattern
 
 object UserHolder {

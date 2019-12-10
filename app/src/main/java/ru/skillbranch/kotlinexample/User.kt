@@ -1,4 +1,4 @@
-package ru.skillbranch.kotlinexemple
+package ru.skillbranch.kotlinexample
 
 import androidx.annotation.VisibleForTesting
 import java.lang.StringBuilder
@@ -145,8 +145,17 @@ class User private constructor (
             val (firstName, lastName) = fullName.fullNameToPair()
 
             return when {
-                !phone.isNullOrBlank() -> User(firstName, lastName, phone)
-                !email.isNullOrBlank() && !password.isNullOrBlank() -> User(firstName, lastName, email, password)
+                !phone.isNullOrBlank() -> User(
+                    firstName,
+                    lastName,
+                    phone
+                )
+                !email.isNullOrBlank() && !password.isNullOrBlank() -> User(
+                    firstName,
+                    lastName,
+                    email,
+                    password
+                )
                 else -> throw IllegalAccessException("Email or phone must be not null or  blank")
             }
 
