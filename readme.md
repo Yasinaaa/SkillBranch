@@ -1,2 +1,0 @@
-# SkillBranch Homeworks
-## Homework1
