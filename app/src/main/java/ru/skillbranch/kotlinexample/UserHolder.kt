@@ -29,14 +29,13 @@ object UserHolder {
         return User.makeUser(fullName, phone = rawPhone)
             .also { user ->
                 if (Pattern.matches("^\\+\\d{11}$", user.getPhone())) {
-                    for ((_,el) in map) {
-                        if (el.getPhone().equals(user.getPhone()))
+                    for (u in map) {
+                        if (u.value.getPhone().equals(user.getPhone()))
                             throw IllegalArgumentException("A user with this phone already exists")
                     }
                     map[user.login] = user
                 }
-                else throw IllegalArgumentException("Enter a valid phone number starting" +
-                        " with a + and containing 11 digits")
+                else throw IllegalArgumentException("Enter a valid phone number starting with a + and containing 11 digits")
 
             }
     }
