@@ -119,6 +119,7 @@ class RootActivity : AppCompatActivity() {
         btn_like.setOnClickListener{viewModel.handleLike()}
         btn_bookmark.setOnClickListener{viewModel.handleBookmark()}
         btn_share.setOnClickListener{viewModel.handleShare()}
+        btn_settings.setOnClickListener { viewModel.handleToggleMenu() }
     }
 
 
@@ -133,40 +134,32 @@ class RootActivity : AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_search, menu)
         val searchItem = menu?.findItem(R.id.action_search)
-        if (searchItem != null) {
-            setupMenu(searchItem)
-            viewModel.searchMode.observe(this, Observer {
-                it.getContentIfNotHandled()?.let { pair ->
-                    if(pair.first){
-                        val searchView = searchItem.actionView as SearchView
-                        searchItem.expandActionView()
-                        searchView.setQuery(pair.second, false)
-                        searchView.clearFocus()
+        val searchView = searchItem?.actionView as SearchView
+        searchView.queryHint = getString(R.string.action_search)
 
-                    }
-                }
-            })
+        val textView = searchView.findViewById<SearchView.SearchAutoComplete>(R.id.search_src_text)
+        textView.setTextColor(getColor(R.color.color_on_article_bar))
+        textView.setHintTextColor(getColor(R.color.color_on_article_bar))
+
+        if (viewModel.currentState.isSearch) {
+            searchItem.expandActionView()
+            searchView.setQuery(viewModel.currentState.searchQuery ?: "", true)
+            searchView.clearFocus()
         }
-        return super.onCreateOptionsMenu(menu)
-    }
 
-    private fun setupMenu(searchItem: MenuItem) {
-
-        val searchView = searchItem.actionView as SearchView
-        searchView.queryHint = "Search"
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
+                viewModel.handleSearch(query)
                 return true
             }
 
-            override fun onQueryTextChange(text: String?): Boolean {
-                viewModel.handleSearch(text)
+            override fun onQueryTextChange(newText: String?): Boolean {
+                viewModel.handleSearch(newText)
                 return true
             }
-
         })
-        searchItem.setOnActionExpandListener(object :
-            MenuItem.OnActionExpandListener {
+
+        searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
             override fun onMenuItemActionExpand(item: MenuItem?): Boolean {
                 viewModel.handleSearchMode(true)
                 return true
@@ -177,9 +170,6 @@ class RootActivity : AppCompatActivity() {
                 return true
             }
         })
-
-        val textView = searchView.findViewById<SearchView.SearchAutoComplete>(R.id.search_src_text)
-        textView.setTextColor(getColor(R.color.color_on_article_bar))
-        textView.setHintTextColor(getColor(R.color.color_on_article_bar))
+        return super.onCreateOptionsMenu(menu)
     }
 }

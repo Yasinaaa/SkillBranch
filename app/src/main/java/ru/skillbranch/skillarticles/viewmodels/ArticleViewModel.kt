@@ -60,18 +60,6 @@ class ArticleViewModel(private val articleId: String):
         }
     }
 
-    override fun getArticleContent(): LiveData<List<Any>?> {
-        return repository.loadArticleContent(articleId)
-    }
-
-    override fun getArticleData(): LiveData<ArticleData?> {
-        return repository.getArticle(articleId)
-    }
-
-    override fun getArticlePersonalInfo(): LiveData<ArticlePersonalInfo?> {
-        return repository.loadArticlePersonalInfo(articleId)
-    }
-
     override fun handleNightMode() {
         val settings = currentState.toAppSettings()
         repository.updateSettings(settings.copy(isDarkMode = !settings.isDarkMode))
@@ -125,8 +113,7 @@ class ArticleViewModel(private val articleId: String):
     }
 
     override fun handleShare() {
-        val msg = "Share is not implemented"
-        notify(Notify.ErrorMessage(msg, "OK", null))
+        notify(Notify.ErrorMessage("Share is not implemented", "OK", null))
     }
 
     override fun handleToggleMenu() {
@@ -140,6 +127,19 @@ class ArticleViewModel(private val articleId: String):
     override fun handleSearch(query: String?) {
         updateState { it.copy(searchQuery = query) }
     }
+
+    override fun getArticleContent(): LiveData<List<Any>?> {
+        return repository.loadArticleContent(articleId)
+    }
+
+    override fun getArticleData(): LiveData<ArticleData?> {
+        return repository.getArticle(articleId)
+    }
+
+    override fun getArticlePersonalInfo(): LiveData<ArticlePersonalInfo?> {
+        return repository.loadArticlePersonalInfo(articleId)
+    }
+
 }
 
 data class ArticleState(

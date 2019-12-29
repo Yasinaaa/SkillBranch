@@ -42,13 +42,13 @@
     <ru.skillbranch.skillarticles.ui.custom.ArticleSubmenu
         android:id="@+id/submenu"
         android:theme="@style/ArticleBarsTheme"
-        android:visibility="gone"
-        tools:visibility="visible"
         android:layout_width="200dp"
         android:layout_height="96dp"
         android:layout_gravity="bottom|end"
+        app:layout_behavior=".ui.custom.behavior.ArticleBehavior"
         android:elevation="4dp"
-        android:layout_marginRight="8dp"
+        android:visibility="gone"
+        android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
         app:layout_dodgeInsetEdges="bottom" />
 
@@ -57,9 +57,10 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:layout_gravity="bottom"
+        app:layout_behavior=".ui.custom.behavior.BottomNavigationBehavior"
         android:theme="@style/ArticleBarsTheme"
         android:elevation="4dp"
         android:background="@drawable/ripple"
-        app:layout_insetEdge="bottom" />
+        app:layout_insetEdge="bottom"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
