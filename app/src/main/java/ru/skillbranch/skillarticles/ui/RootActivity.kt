@@ -64,7 +64,7 @@ class RootActivity : AppCompatActivity() {
             if (data.isLoadingContent) "loading..." else data.content.first() as String
         toolbar.title = data.title ?: "loading"
         toolbar.subtitle = data.category ?: "loading"
-        if (data.category != null) toolbar.logo = getDrawable(data.categoryIcon as Int)
+        if (data.categoryIcon != null) toolbar.logo = getDrawable(data.categoryIcon as Int)
     }
 
     private fun setupToolbar(){

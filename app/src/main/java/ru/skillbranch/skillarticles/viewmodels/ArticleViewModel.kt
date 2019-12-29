@@ -164,4 +164,6 @@ data class ArticleState(
     val poster: String? = null,
     val content: List<Any> = emptyList(),
     val reviews: List<Any> = emptyList()
+
+
 )
