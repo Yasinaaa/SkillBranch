@@ -16,6 +16,15 @@ import ru.skillbranch.skillarticles.extensions.format
 class ArticleViewModel(private val articleId: String):
     BaseViewModel<ArticleState>(ArticleState()), IArticleViewModel {
     private val repository = ArticleRepository
+    private val _searchMode = MutableLiveData<Event<Pair<Boolean, String>>>()
+    val searchMode:LiveData<Event<Pair<Boolean, String>>>
+        get() = _searchMode
+
+    fun setSearchMode(){
+        _searchMode.value = Event(Pair(
+            currentState.isSearch, currentState.searchQuery ?: ""
+        ))
+    }
 
     init{
         subscribeOnDataSource(getArticleData()){ article, state ->
@@ -25,7 +34,8 @@ class ArticleViewModel(private val articleId: String):
                 title = article.title,
                 category = article.category,
                 categoryIcon = article.categoryIcon,
-                date = article.date.format()
+                date = article.date.format(),
+                author = article.author
             )
         }
         subscribeOnDataSource(getArticleContent()){ content, state ->
@@ -76,7 +86,22 @@ class ArticleViewModel(private val articleId: String):
     }
 
     override fun handleBookmark() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val toggleBookmark = {
+            val info = currentState.toArticlePersonalInfo()
+            repository.updateArticlePersonalInfo(info.copy(isBookmark = !info.isBookmark))
+        }
+
+        toggleBookmark()
+
+        val message = if(currentState.isBookmark) Notify.TextMessage("Add to bookmarks")
+        else {
+            Notify.ActionMessage(
+                msg = "Remove from bookmarks",
+                actionLabel = "No",
+                actionHandler = toggleBookmark
+            )
+        }
+        notify(message)
     }
 
     override fun handleLike() {
@@ -90,9 +115,9 @@ class ArticleViewModel(private val articleId: String):
         val msg = if (currentState.isLike) Notify.TextMessage("Mark is liked")
         else{
             Notify.ActionMessage(
-                "Don't like it anymore",
-                "No, still like it",
-                toggleLike
+                msg ="Don`t like it anymore",
+                actionLabel = "No, still like it",
+                actionHandler = toggleLike
             )
         }
 
@@ -109,11 +134,11 @@ class ArticleViewModel(private val articleId: String):
     }
 
     override fun handleSearchMode(isSearch: Boolean) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        updateState { it.copy(isSearch = isSearch) }
     }
 
     override fun handleSearch(query: String?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        updateState { it.copy(searchQuery = query) }
     }
 }
 

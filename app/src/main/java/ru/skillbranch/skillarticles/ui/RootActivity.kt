@@ -2,9 +2,12 @@ package ru.skillbranch.skillarticles
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.ImageView
-import android.widget.Toolbar
+import androidx.appcompat.widget.Toolbar
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.ViewModelProviders
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.layout_bottombar.*
@@ -15,6 +18,7 @@ import ru.skillbranch.skillarticles.viewmodels.ArticleState
 import ru.skillbranch.skillarticles.viewmodels.ArticleViewModel
 import ru.skillbranch.skillarticles.viewmodels.Notify
 import ru.skillbranch.skillarticles.viewmodels.ViewModelFactory
+import androidx.lifecycle.Observer
 
 class RootActivity : AppCompatActivity() {
 
@@ -40,28 +44,27 @@ class RootActivity : AppCompatActivity() {
     private fun renderUi(data: ArticleState){
         btn_settings.isChecked = data.isShowMenu
         if (data.isShowMenu) submenu.open() else submenu.close()
-
         btn_like.isChecked = data.isLike
         btn_bookmark.isChecked = data.isBookmark
-
         switch_mode.isChecked = data.isDarkMode
         delegate.localNightMode =
             if (data.isDarkMode) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
 
-        if (data.isBigText){
+        if (data.isBigText) {
             tv_text_content.textSize = 18f
             btn_text_up.isChecked = true
             btn_text_down.isChecked = false
-        }else{
+        } else {
             tv_text_content.textSize = 14f
             btn_text_up.isChecked = false
             btn_text_down.isChecked = true
         }
-        tv_text_content.text = if (data.isLoadingContent) "loading" else data.content.first() as String
 
+        tv_text_content.text =
+            if (data.isLoadingContent) "loading..." else data.content.first() as String
         toolbar.title = data.title ?: "loading"
         toolbar.subtitle = data.category ?: "loading"
-        if (data.categoryIcon != null) toolbar.logo = getDrawable(data.categoryIcon as Int)
+        if (data.category != null) toolbar.logo = getDrawable(data.categoryIcon as Int)
     }
 
     private fun setupToolbar(){
@@ -116,5 +119,67 @@ class RootActivity : AppCompatActivity() {
         btn_like.setOnClickListener{viewModel.handleLike()}
         btn_bookmark.setOnClickListener{viewModel.handleBookmark()}
         btn_share.setOnClickListener{viewModel.handleShare()}
+    }
+
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.action_search) {
+            viewModel.handleSearchMode(true)
+            return true
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_search, menu)
+        val searchItem = menu?.findItem(R.id.action_search)
+        if (searchItem != null) {
+            setupMenu(searchItem)
+            viewModel.searchMode.observe(this, Observer {
+                it.getContentIfNotHandled()?.let { pair ->
+                    if(pair.first){
+                        val searchView = searchItem.actionView as SearchView
+                        searchItem.expandActionView()
+                        searchView.setQuery(pair.second, false)
+                        searchView.clearFocus()
+
+                    }
+                }
+            })
+        }
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    private fun setupMenu(searchItem: MenuItem) {
+
+        val searchView = searchItem.actionView as SearchView
+        searchView.queryHint = "Search"
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return true
+            }
+
+            override fun onQueryTextChange(text: String?): Boolean {
+                viewModel.handleSearch(text)
+                return true
+            }
+
+        })
+        searchItem.setOnActionExpandListener(object :
+            MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem?): Boolean {
+                viewModel.handleSearchMode(true)
+                return true
+            }
+
+            override fun onMenuItemActionCollapse(item: MenuItem?): Boolean {
+                viewModel.handleSearchMode(false)
+                return true
+            }
+        })
+
+        val textView = searchView.findViewById<SearchView.SearchAutoComplete>(R.id.search_src_text)
+        textView.setTextColor(getColor(R.color.color_on_article_bar))
+        textView.setHintTextColor(getColor(R.color.color_on_article_bar))
     }
 }
