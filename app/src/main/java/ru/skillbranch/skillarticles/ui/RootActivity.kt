@@ -18,7 +18,6 @@ import ru.skillbranch.skillarticles.viewmodels.ArticleState
 import ru.skillbranch.skillarticles.viewmodels.ArticleViewModel
 import ru.skillbranch.skillarticles.viewmodels.Notify
 import ru.skillbranch.skillarticles.viewmodels.ViewModelFactory
-import androidx.lifecycle.Observer
 import ru.skillbranch.skillarticles.R
 
 class RootActivity : AppCompatActivity() {
