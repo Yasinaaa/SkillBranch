@@ -27,6 +27,7 @@
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
@@ -35,6 +36,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
             android:text="Loading..."/>
 
     </androidx.core.widget.NestedScrollView>
@@ -57,7 +60,7 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:layout_gravity="bottom"
-        app:layout_behavior=".ui.custom.behavior.BottomNavigationBehavior"
+        app:layout_behavior=".ui.custom.behavior.BottombarBehavior"
         android:theme="@style/ArticleBarsTheme"
         android:elevation="4dp"
         android:background="@drawable/ripple"
