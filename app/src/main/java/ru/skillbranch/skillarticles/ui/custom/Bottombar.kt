@@ -13,7 +13,7 @@ import androidx.core.view.isVisible
 import com.google.android.material.shape.MaterialShapeDrawable
 import kotlinx.android.synthetic.main.layout_bottombar.view.*
 import ru.skillbranch.skillarticles.R
-import ru.skillbranch.skillarticles.ui.custom.behavior.BottombarBehavior
+import ru.skillbranch.skillarticles.ui.custom.behaviors.BottombarBehavior
 import kotlin.math.hypot
 
 class Bottombar @JvmOverloads constructor(
