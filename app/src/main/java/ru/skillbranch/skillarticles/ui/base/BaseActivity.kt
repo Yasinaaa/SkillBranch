@@ -2,9 +2,8 @@ package ru.skillbranch.skillarticles.ui.base
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import ru.skillbranch.skillarticles.viewmodels.base.BaseViewModel
-import ru.skillbranch.skillarticles.viewmodels.base.IViewModelState
-import ru.skillbranch.skillarticles.viewmodels.base.Notify
+import ru.skillbranch.skillarticles.viewmodels.base.*
+
 /*
  * Created by yasina on 2020-01-31
 */
@@ -38,4 +37,6 @@ abstract class BaseActivity<T : BaseViewModel<out IViewModelState>> : AppCompatA
         viewModel.restoreState(savedInstanceState)
         binding.restoreUi(savedInstanceState)
     }
+
+    internal inline fun provideViewModel(arg : Any?) : ViewModelDelegate<T> = ViewModelDelegate<T>(this.viewModel.javaClass, arg)
 }

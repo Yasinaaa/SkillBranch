@@ -36,8 +36,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
             android:text="Loading..."/>
 
     </androidx.core.widget.NestedScrollView>
@@ -48,7 +46,7 @@
         android:layout_width="200dp"
         android:layout_height="96dp"
         android:layout_gravity="bottom|end"
-        app:layout_behavior=".ui.custom.behavior.ArticleBehavior"
+        app:layout_behavior=".ui.custom.behavior.SubmenuBehavior"
         android:elevation="4dp"
         android:visibility="gone"
         android:layout_marginEnd="8dp"
