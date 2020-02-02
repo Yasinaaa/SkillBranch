@@ -18,7 +18,6 @@ import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.SearchView.SearchAutoComplete
 import androidx.core.text.getSpans
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProviders
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.layout_bottombar.*
 import kotlinx.android.synthetic.main.activity_root.*
@@ -38,15 +37,15 @@ import ru.skillbranch.skillarticles.ui.delegates.ObserveProp
 import ru.skillbranch.skillarticles.ui.delegates.RenderProp
 import ru.skillbranch.skillarticles.viewmodels.base.IViewModelState
 import ru.skillbranch.skillarticles.viewmodels.base.Notify
-import ru.skillbranch.skillarticles.viewmodels.base.ViewModelDelegate
 import ru.skillbranch.skillarticles.viewmodels.base.ViewModelFactory
 
 class RootActivity : BaseActivity<ArticleViewModel>(), IArticleView {
 
     override val layout: Int = R.layout.activity_root
-    override val viewModel: ArticleViewModel by ViewModelDelegate(
-        ArticleViewModel::class.java, "0"
-    )
+    override val viewModel: ArticleViewModel by lazy{
+        val vmFactory = ViewModelFactory("0")
+        ViewModelProvider(this, vmFactory).get(ArticleViewModel::class.java)
+    }
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     val bgColor by AttrValue(R.attr.colorSecondary)
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
