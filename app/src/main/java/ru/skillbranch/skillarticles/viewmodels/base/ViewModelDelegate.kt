@@ -15,7 +15,7 @@ class ViewModelDelegate<T : ViewModel>(private val clazz: Class<T>, private val 
 : ReadOnlyProperty<FragmentActivity, T> {
 
     override fun getValue(thisRef: FragmentActivity, property: KProperty<*>): T{
-        return ViewModelProvider(thisRef, ViewModelFactory(arg ?: "0")).get(clazz)
+        return ViewModelProvider(thisRef, ViewModelFactory(arg as String)).get(clazz)
     }
 
 }
