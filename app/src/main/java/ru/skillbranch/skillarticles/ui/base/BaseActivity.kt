@@ -39,6 +39,6 @@ abstract class BaseActivity<T : BaseViewModel<out IViewModelState>> : AppCompatA
     }
 
     internal inline fun provideViewModel(arg : Any?) : ViewModelDelegate<T> {
-        return ViewModelDelegate(clazz = arg as Class<T>, arg = "")
+        return ViewModelDelegate(clazz = arg as Class<T>, arg = "0")
     }
 }
