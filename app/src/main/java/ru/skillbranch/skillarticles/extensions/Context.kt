@@ -1,10 +1,13 @@
 package ru.skillbranch.skillarticles.extensions
 
 import android.content.Context
+import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.util.TypedValue
+import androidx.core.content.ContextCompat
+import java.lang.RuntimeException
 
 fun Context.dpToPx(dp: Int): Float {
     return TypedValue.applyDimension(
@@ -21,6 +24,14 @@ fun Context.dpToIntPx(dp: Int): Int {
         dp.toFloat(),
         this.resources.displayMetrics
     ).toInt()
+}
+
+fun Context.attrValue(id: Int): Int {
+    return try {
+        ContextCompat.getColor(this, TypedValue().resourceId)
+    }catch (e: RuntimeException){
+        Color.BLACK
+    }
 }
 
 val Context.isNetworkAvailable: Boolean

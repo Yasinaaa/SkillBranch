@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.text.Selection
 import android.text.Spannable
 import android.text.SpannableString
+import android.text.method.LinkMovementMethod
 import android.text.method.ScrollingMovementMethod
 import android.util.Log
 import android.view.Menu
@@ -16,7 +17,9 @@ import androidx.appcompat.widget.Toolbar
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.SearchView.SearchAutoComplete
+import androidx.core.text.clearSpans
 import androidx.core.text.getSpans
+import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.layout_bottombar.*
@@ -28,6 +31,7 @@ import ru.skillbranch.skillarticles.viewmodels.ArticleState
 import ru.skillbranch.skillarticles.viewmodels.ArticleViewModel
 import ru.skillbranch.skillarticles.R
 import ru.skillbranch.skillarticles.extensions.setMarginOptionally
+import ru.skillbranch.skillarticles.markdown.MarkdownBuilder
 import ru.skillbranch.skillarticles.ui.base.BaseActivity
 import ru.skillbranch.skillarticles.ui.base.Binding
 import ru.skillbranch.skillarticles.ui.custom.SearchFocusSpan
@@ -44,16 +48,14 @@ class RootActivity : BaseActivity<ArticleViewModel>(), IArticleView {
 
     override val layout: Int = R.layout.activity_root
     override val viewModel: ArticleViewModel by provideViewModel("lalal")
-//    lazy{
-//        val vmFactory = ViewModelFactory("0")
-//        ViewModelProvider(this, vmFactory).get(ArticleViewModel::class.java)
-//    }
+    @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
+    public override val binding: ArticleBinding by lazy { ArticleBinding() }
+
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     val bgColor by AttrValue(R.attr.colorSecondary)
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     val fgColor by AttrValue(R.attr.colorOnSecondary)
-    @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
-    public override val binding: ArticleBinding by lazy { ArticleBinding() }
+
 
     override fun setupViews() {
         setupToolbar()
@@ -64,10 +66,10 @@ class RootActivity : BaseActivity<ArticleViewModel>(), IArticleView {
     private fun setupToolbar(){
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        val logo = if(toolbar.childCount>2) toolbar.getChildAt(2) as ImageView else null
+        val logo = if(toolbar.childCount > 2) toolbar.getChildAt(2) as ImageView else null
         logo?.scaleType = ImageView.ScaleType.CENTER_CROP
-        val lp = logo?.layoutParams as? Toolbar.LayoutParams
-        lp?.let{
+        //check toolbar imports
+        (logo?.layoutParams as? Toolbar.LayoutParams)?.let{
             it.width = this.dpToIntPx(40)
             it.height = this.dpToIntPx(40)
             it.marginEnd = this.dpToIntPx(16)
@@ -83,20 +85,22 @@ class RootActivity : BaseActivity<ArticleViewModel>(), IArticleView {
             is Notify.TextMessage -> { }
 
             is Notify.ActionMessage -> {
-                snackbar.setActionTextColor(getColor(R.color.color_accent_dark))
-                snackbar.setAction(notify.actionLabel){
-                    notify.actionHandler.invoke()
+                val(_, label, handler) = notify
+
+                with(snackbar){
+                    setActionTextColor(getColor(R.color.color_accent_dark))
+                    setAction(label){handler.invoke()}
                 }
             }
 
             is Notify.ErrorMessage -> {
+                val(_, label, handler) = notify
                 with(snackbar){
                     setBackgroundTint(getColor(R.color.design_default_color_error))
                     setTextColor(getColor(android.R.color.white))
-                    snackbar.setActionTextColor(getColor(android.R.color.white))
-                    snackbar.setAction(notify.errLabel){
-                        notify.errHandler?.invoke()
-                    }
+                    setActionTextColor(getColor(android.R.color.white))
+                    handler ?: return@with
+                    setAction(label){handler.invoke()}
                 }
             }
         }
@@ -117,10 +121,12 @@ class RootActivity : BaseActivity<ArticleViewModel>(), IArticleView {
 
         btn_result_up.setOnClickListener {
             if(search_view.hasFocus()) search_view.clearFocus()
+            if(!tv_text_content.hasFocus()) tv_text_content.requestFocus()
             viewModel.handleUpResult()
         }
         btn_result_down.setOnClickListener {
             if(search_view.hasFocus()) search_view.clearFocus()
+            if(!tv_text_content.hasFocus()) tv_text_content.requestFocus()
             viewModel.handleDownResult()
         }
         btn_search_close.setOnClickListener {
@@ -184,9 +190,11 @@ class RootActivity : BaseActivity<ArticleViewModel>(), IArticleView {
 
     override fun renderSearchResult(searchResult: List<Pair<Int, Int>>) {
         val content = tv_text_content.text as Spannable
-
+        tv_text_content.isVisible
         //clear entry search result
         clearSearchResult()
+
+        content.clearSpans()
 
         searchResult.forEach { (start, end) ->
             content.setSpan(
@@ -198,7 +206,7 @@ class RootActivity : BaseActivity<ArticleViewModel>(), IArticleView {
         }
 
         //scroll to first searched position
-        renderSearchPosition(0)
+        //renderSearchPosition(0)
     }
 
     override fun renderSearchPosition(searchPosition: Int) {
@@ -281,6 +289,14 @@ class RootActivity : BaseActivity<ArticleViewModel>(), IArticleView {
         private var content: String by ObserveProp("loading"){
             tv_text_content.setText(it, TextView.BufferType.SPANNABLE)
             tv_text_content.movementMethod = ScrollingMovementMethod()
+
+            MarkdownBuilder(this@RootActivity)
+                .markdownToSpan(it)
+                .run{
+                    tv_text_content.setText(this, TextView.BufferType.SPANNABLE)
+                }
+
+            tv_text_content.movementMethod = LinkMovementMethod.getInstance()
         }
 
         override fun onFinishInflate() {
@@ -314,7 +330,8 @@ class RootActivity : BaseActivity<ArticleViewModel>(), IArticleView {
             if (data.title != null) title = data.title
             if (data.category != null) category = data.category
             if (data.categoryIcon != null) categoryIcon = data.categoryIcon as Int
-            if (data.content.isNotEmpty()) content = data.content.first() as String
+            if (data.content != null) content = data.content
+//            if (data.content.isNotEmpty()) content = data.content.first() as String
 
             isLoadingContent = data.isLoadingContent
             isSearch = data.isSearch
@@ -323,9 +340,9 @@ class RootActivity : BaseActivity<ArticleViewModel>(), IArticleView {
             searchResults = data.searchResults
 
             //renderUi(data)
-            if (data.isSearch) showSearchBar() else hideSearchBar()
-            if (data.searchResults.isNotEmpty()) renderSearchResult(data.searchResults)
-            if (data.searchResults.isNotEmpty()) renderSearchPosition(data.searchPosition)
+//            if (data.isSearch) showSearchBar() else hideSearchBar()
+//            if (data.searchResults.isNotEmpty()) renderSearchResult(data.searchResults)
+//            if (data.searchResults.isNotEmpty()) renderSearchPosition(data.searchPosition)
 
         }
 

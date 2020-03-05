@@ -1,6 +1,7 @@
 package ru.skillbranch.skillarticles.viewmodels
 
 import android.os.Bundle
+import android.util.Log
 import androidx.core.os.bundleOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -11,6 +12,8 @@ import ru.skillbranch.skillarticles.extensions.data.toAppSettings
 import ru.skillbranch.skillarticles.extensions.data.toArticlePersonalInfo
 import ru.skillbranch.skillarticles.extensions.format
 import ru.skillbranch.skillarticles.extensions.indexesOf
+import ru.skillbranch.skillarticles.markdown.MarkdownBuilder
+import ru.skillbranch.skillarticles.markdown.MarkdownParser
 import ru.skillbranch.skillarticles.viewmodels.base.BaseViewModel
 import ru.skillbranch.skillarticles.viewmodels.base.Event
 import ru.skillbranch.skillarticles.viewmodels.base.IViewModelState
@@ -23,6 +26,7 @@ class ArticleViewModel(private val articleId: String) : BaseViewModel<ArticleSta
 
     private val repository = ArticleRepository
     private val _searchMode = MutableLiveData<Event<Pair<Boolean, String>>>()
+    private var clearContent: String? = null
 
     val searchMode:LiveData<Event<Pair<Boolean, String>>>
         get() = _searchMode
@@ -34,8 +38,10 @@ class ArticleViewModel(private val articleId: String) : BaseViewModel<ArticleSta
     }
 
     init{
+        //subscribe on mutable data
         subscribeOnDataSource(getArticleData()){ article, state ->
             article ?: return@subscribeOnDataSource null
+            Log.e("ArticleViewModel", "author: ${article.author}")
             state.copy(
                 shareLink = article.shareLink,
                 title = article.title,
@@ -80,23 +86,18 @@ class ArticleViewModel(private val articleId: String) : BaseViewModel<ArticleSta
         repository.updateSettings(currentState.toAppSettings().copy(isBigText = false))
     }
 
+    //personal article info
     override fun handleBookmark() {
-        val toggleBookmark = {
-            val info = currentState.toArticlePersonalInfo()
-            repository.updateArticlePersonalInfo(info.copy(isBookmark = !info.isBookmark))
-        }
+        val info = currentState.toArticlePersonalInfo()
+        repository.updateArticlePersonalInfo(info.copy(isBookmark = !info.isBookmark))
 
-        toggleBookmark()
-
-        val message = if(currentState.isBookmark) Notify.TextMessage("Add to bookmarks")
-        else {
-            Notify.ActionMessage(
-                msg = "Remove from bookmarks",
-                actionLabel = "No",
-                actionHandler = toggleBookmark
-            )
+        val msg =
+            if(currentState.isBookmark)
+                "Add to bookmarks"
+            else {
+                "Remove from bookmarks"
         }
-        notify(message)
+        notify(Notify.TextMessage(msg))
     }
 
     override fun handleLike() {
@@ -104,13 +105,11 @@ class ArticleViewModel(private val articleId: String) : BaseViewModel<ArticleSta
             val info = currentState.toArticlePersonalInfo()
             repository.updateArticlePersonalInfo(info.copy(isLike = !info.isLike))
         }
-
-        toggleLike()
-
+        toggleLike
         val msg = if (currentState.isLike) Notify.TextMessage("Mark is liked")
         else{
             Notify.ActionMessage(
-                msg ="Don`t like it anymore",
+                message = "Don`t like it anymore",
                 actionLabel = "No, still like it",
                 actionHandler = toggleLike
             )
@@ -133,10 +132,11 @@ class ArticleViewModel(private val articleId: String) : BaseViewModel<ArticleSta
 
     override fun handleSearch(query: String?) {
         query ?: return
-        val result = (currentState.content.firstOrNull() as? String)
+        if(clearContent == null) clearContent = MarkdownParser.clear(currentState.content)
+        val result = clearContent
             .indexesOf(query)
             .map{it to it + query.length}
-        updateState { it.copy(searchQuery = query, searchResults = result) }
+        updateState { it.copy(searchQuery = query, searchResults = result, searchPosition = 0) }
     }
 
     fun handleUpResult(){
@@ -147,14 +147,17 @@ class ArticleViewModel(private val articleId: String) : BaseViewModel<ArticleSta
         updateState { it.copy(searchPosition = it.searchPosition.inc()) }
     }
 
-    override fun getArticleContent(): LiveData<List<Any>?> {
+    //load text from network
+    override fun getArticleContent(): LiveData<String?> {
         return repository.loadArticleContent(articleId)
     }
 
+    //load data from db
     override fun getArticleData(): LiveData<ArticleData?> {
         return repository.getArticle(articleId)
     }
 
+    //load data from bd
     override fun getArticlePersonalInfo(): LiveData<ArticlePersonalInfo?> {
         return repository.loadArticlePersonalInfo(articleId)
     }
@@ -181,7 +184,7 @@ data class ArticleState(
     val date: String? = null,
     val author: Any? = null,
     val poster: String? = null,
-    val content: List<Any> = emptyList(),
+    val content: String? = null,
     val reviews: List<Any> = emptyList()
 ):IViewModelState{
 
