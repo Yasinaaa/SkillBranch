@@ -31,12 +31,13 @@ class MarkdownBuilder(context: Context) {
     private val headerMarginBottom = context.dpToPx(8)
     private val ruleWidth = context.dpToPx(2)
     private val cornerRadius = context.dpToPx(8)
-    private val linkIcon = context.getDrawable(R.drawable.ic_link_black_24dp)!!
+    private val linkIcon = context.getDrawable(R.drawable.ic_link_black_24dp)!!.apply {
+        setTint(colorSecondary)
+    }
 
-    fun markdownToSpan(string: String): SpannedString {
-        val markdown = MarkdownParser.parse(string)
+    fun markdownToSpan(textContent: MarkdownElement.Text): SpannedString {
         return buildSpannedString {
-            markdown.elements.forEach { buildElement(it, this) }
+            textContent.elements.forEach { buildElement(it, this) }
         }
     }
 
@@ -109,6 +110,14 @@ class MarkdownBuilder(context: Context) {
                         URLSpan(element.link)
                     ){
                         append(element.text)
+                    }
+                }
+
+                is Element.OrderedListItem -> {
+                    inSpans(OrderedListSpan(gap, element.order, colorPrimary)){
+                        for (child in element.elements){
+                            buildElement(child, builder)
+                        }
                     }
                 }
 
