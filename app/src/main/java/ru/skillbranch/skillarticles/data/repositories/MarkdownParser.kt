@@ -1,4 +1,4 @@
-package ru.skillbranch.skillarticles.markdown
+package ru.skillbranch.skillarticles.data.repositories
 
 import java.lang.StringBuilder
 import java.util.regex.Pattern
@@ -17,8 +17,9 @@ object MarkdownParser {
     private const val RULE_GROUP = "(^[-_*]{3}$)"
     private const val INLINE_GROUP = "((?<!`)`[^`\\s].*?[`\\s]?`(?!`))"
     private const val LINK_GROUP = "(\\[[^\\[\\]]*?]\\(.+?\\)|^\\[*?]\\(.*?\\))"
-    private const val BLOCK_CODE_GROUP = "" //TODO implement me
-    private const val ORDER_LIST_GROUP = "" //TODO implement me
+    private const val BLOCK_CODE_GROUP = "(^```[\\s\\S+]?```$)" //group 10
+    private const val ORDER_LIST_GROUP = "(^\\d{1,2}\\.\\s.+?$)" //group 11
+    private const val IMAGE_GROUP = "(^!\\[[^\\[\\]]*?\\]\\(.*?\\)$)" //group 11
 
     //result regex
     private const val MARKDOWN_GROUPS = "$UNORDERED_LIST_ITEM_GROUP|$HEADER_GROUP|$QUOTE_GROUP" +
@@ -50,7 +51,7 @@ object MarkdownParser {
     }
 
     private fun clearRecursion(string: CharSequence): List<Element>{
-        val parents= mutableListOf<Element>()
+        val parents = mutableListOf<Element>()
         val matcher = elementsPattern.matcher(string)
         var lastStartIndex = 0
 
