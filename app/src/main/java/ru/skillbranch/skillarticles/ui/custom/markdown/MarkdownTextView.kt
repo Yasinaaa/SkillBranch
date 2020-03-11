@@ -1,8 +1,69 @@
 package ru.skillbranch.skillarticles.ui.custom.markdown
 
+import android.annotation.SuppressLint
+import android.content.Context
+import android.graphics.Canvas
+import android.graphics.Rect
+import android.text.Spannable
+import android.text.Spanned
+import android.text.method.LinkMovementMethod
+import android.view.ViewGroup
+import android.widget.TextView
+import androidx.annotation.VisibleForTesting
+import androidx.core.graphics.withTranslation
+import ru.skillbranch.skillarticles.R
+import ru.skillbranch.skillarticles.extensions.attrValue
+import ru.skillbranch.skillarticles.extensions.dpToIntPx
+
 /**
  * Created by yasina on 10.03.2020.
  * Copyright (c) 2018 Infomatica. All rights reserved.
  */
-class MarkdownTextView {
+@SuppressLint("ViewConstructor")
+@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+class MarkdownTextView private constructor(
+    context: Context,
+    fontSize: Float,
+    mockHelper: SearchBgHelper? = null //for mock
+) : TextView(context, null, 0), IMarkdownView{
+
+    constructor(context: Context, fontSize: Float) : this(context, fontSize, null)
+
+    override val fontSize: Float = fontSize
+        set(value) {
+            textSize = value
+            field = value
+        }
+
+    override val spannableContent: Spannable
+        get() = tv_codeView.text as Spannable
+
+    private val color: Int = context.attrValue(R.attr.colorOnBackground)
+    private val focusRect = Rect()
+
+    private val searchBgHelper = SearchBgHelper(context){ top, bottom ->
+        focusRect.set(0, top - context.dpToIntPx(56), width, bottom + context.dpToIntPx(56))
+        //show rect on view with animation
+        requestRectangleOnScreen(focusRect, false)
+    }
+
+    init{
+        searchBgHelper = mockHelper ?: SearchBgHelper(context) { top, bottom ->
+            focusRect.set(0, top - context.dpToIntPx(56), width, bottom + context.dpToIntPx(56))
+            //show rect on view with animation
+            requestRectangleOnScreen(focusRect, false)
+        }
+        setTextColor(color)
+        textSize = fontSize
+        movementMethod = LinkMovementMethod.getInstance()
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        if (text is Spanned && layout != null){
+            canvas.withTranslation(totalPaddingLeft.toFloat(), totalPaddingTop.toFloat()){
+                searchBgHelper.draw(canvas, text as Spanned, layout)
+            }
+        }
+        super.onDraw(canvas)
+    }
 }
