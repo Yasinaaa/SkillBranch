@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
+import android.text.Selection
 import android.text.Spannable
 import android.view.View
 import android.view.ViewGroup
@@ -150,5 +151,71 @@ class MarkdownCodeView private constructor(
 
         usedHeight += sv_scroll.measuredHeight + paddingTop + paddingBottom
         setMeasuredDimension(width, usedHeight)
+    }
+
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    public override fun onLayout(changed: Boolean, l:Int, t:Int, r:Int, b:Int){
+        val usedHeight = paddingTop
+        val bodyWidth = r - l - paddingLeft - paddingRight
+        val left = paddingLeft
+        val right = paddingLeft + bodyWidth
+
+        if (isSingleLine){
+            val iconHeight = (b - t - iconSize) / 2
+
+            iv_copy.layout(
+                right - iconSize,
+                iconHeight,
+                right,
+                iconHeight + iconSize
+            )
+
+            iv_switch.layout(
+                iv_copy.right - (2.5f*iconSize).toInt(),
+                iconHeight,
+                iv_copy.right - (1.5f*iconSize).toInt(),
+                iconHeight + iconSize
+            )
+        }else{
+            iv_copy.layout(
+                right - iconSize,
+                usedHeight,
+                right,
+                usedHeight + iconSize
+            )
+
+            iv_switch.layout(
+                iv_copy.right - (2.5f*iconSize).toInt(),
+                usedHeight,
+                iv_copy.right - (1.5f*iconSize).toInt(),
+                usedHeight + iconSize
+            )
+        }
+
+        sv_scroll.layout(
+            left,
+            usedHeight,
+            right,
+            usedHeight + sv_scroll.measuredHeight
+        )
+    }
+
+    override fun renderSearchPosition(searchPosition: Pair<Int, Int>, offset: Int){
+        super.renderSearchPosition(searchPosition, offset)
+        if ((parent as ViewGroup).hasFocus() && !tv_codeView.hasFocus()) tv_codeView.requestFocus()
+        Selection.setSelection(spannableContent, searchPosition.first.minus(offset))
+    }
+
+    private fun toggleColors(){
+        isManual = true
+        isDark = !isDark
+        applyColors()
+    }
+
+    private fun applyColors(){
+        iv_switch.imageTintList = ColorStateList.valueOf(textColor)
+        iv_copy.imageTintList = ColorStateList.valueOf(textColor)
+        (background as GradientDrawable).color = ColorStateList.valueOf(bgColor)
+        tv_codeView.setTextColor(textColor)
     }
 }
