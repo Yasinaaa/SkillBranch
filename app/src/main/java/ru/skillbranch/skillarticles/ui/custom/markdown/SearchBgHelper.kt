@@ -9,17 +9,15 @@ import android.text.Layout
 import android.text.Spanned
 import androidx.annotation.VisibleForTesting
 import androidx.core.graphics.ColorUtils
-import ru.skillbranch.skillarticles.extensions.attrValue
-import ru.skillbranch.skillarticles.extensions.dpToIntPx
-import ru.skillbranch.skillarticles.extensions.dpToPx
+import androidx.core.text.getSpans
 import ru.skillbranch.skillarticles.R
-import ru.skillbranch.skillarticles.markdown.spans.HeaderSpan
+import ru.skillbranch.skillarticles.extensions.*
+import ru.skillbranch.skillarticles.ui.custom.spans.*
 import ru.skillbranch.skillarticles.ui.custom.SearchFocusSpan
 import ru.skillbranch.skillarticles.ui.custom.SearchSpan
 
 /**
  * Created by yasina on 10.03.2020.
- * Copyright (c) 2018 Infomatica. All rights reserved.
  */
 @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 class SearchBgHelper(
@@ -41,7 +39,7 @@ class SearchBgHelper(
     private val drawable: Drawable by lazy{
         mockDrawable ?: GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
-            cornerRadii = FloatArray(8).apply { fill(radius, 9, size) }
+            cornerRadii = FloatArray(8).apply { fill(radius, 0, size) }
             color = ColorStateList.valueOf(alphaColor)
             setStroke(borderWidth, secondaryColor)
         }

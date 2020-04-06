@@ -17,6 +17,7 @@ import androidx.annotation.VisibleForTesting
 import ru.skillbranch.skillarticles.extensions.attrValue
 import ru.skillbranch.skillarticles.R
 import ru.skillbranch.skillarticles.extensions.dpToIntPx
+import ru.skillbranch.skillarticles.extensions.setPaddingOptionally
 
 /**
  * Created by yasina on 10.03.2020.
@@ -28,7 +29,7 @@ class MarkdownCodeView private constructor(
     fontSize: Float
 ) : ViewGroup(context, null, 0), IMarkdownView{
 
-    override val fontSize: Float = fontSize
+    override var fontSize: Float = fontSize
         set(value) {
             tv_codeView.textSize = value * 0.85f
             field = value
@@ -94,7 +95,7 @@ class MarkdownCodeView private constructor(
             isFocusableInTouchMode = true
         }
 
-        sv_scroll = object :: HorizontalScrollView(context){
+        sv_scroll = object : HorizontalScrollView(context){
             override fun getLeftFadingEdgeStrength(): Float {
                 return 0f
             }
@@ -134,16 +135,17 @@ class MarkdownCodeView private constructor(
         codeString = code
         isSingleLine = code.lines().size == 1
         tv_codeView.setText(codeString, TextView.BufferType.SPANNABLE)
-        setPadding(padding)
+        setPaddingOptionally(right = padding)
         background = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
-            cornerRadii = FloatArray(8).apply { fill(radius, 0, size) }
+            cornerRadii = FloatArray(8).apply { fill(radius.toFloat(), 0, size) }
             color = ColorStateList.valueOf(bgColor)
         }
     }
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    public override fun onMesure(widthMeasureSpec: Int, heightMeasureSpec: Int){
+    public override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         var usedHeight = 0
         val width = View.getDefaultSize(suggestedMinimumWidth, widthMeasureSpec)
         measureChild(sv_scroll, widthMeasureSpec, heightMeasureSpec)

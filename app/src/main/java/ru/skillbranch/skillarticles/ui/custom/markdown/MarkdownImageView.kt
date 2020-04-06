@@ -2,15 +2,9 @@ package ru.skillbranch.skillarticles.ui.custom.markdown
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.res.ColorStateList
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.Typeface
-import android.graphics.drawable.GradientDrawable
+import android.graphics.*
 import android.text.Spannable
 import android.view.*
-import android.widget.HorizontalScrollView
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.ColorInt
@@ -26,13 +20,14 @@ import ru.skillbranch.skillarticles.R
 import ru.skillbranch.skillarticles.extensions.attrValue
 import ru.skillbranch.skillarticles.extensions.dpToIntPx
 import ru.skillbranch.skillarticles.extensions.dpToPx
-import java.lang.Math.hypot
+import ru.skillbranch.skillarticles.extensions.setPaddingOptionally
+import kotlin.math.hypot
+import androidx.core.view.setPadding
 import java.nio.charset.Charset
 import java.security.MessageDigest
 
 /**
  * Created by yasina on 10.03.2020.
- * Copyright (c) 2018 Infomatica. All rights reserved.
  */
 @SuppressLint("ViewConstructor")
 class MarkdownImageView private constructor(
@@ -40,7 +35,7 @@ class MarkdownImageView private constructor(
     fontSize: Float
 ) : ViewGroup(context, null, 0), IMarkdownView{
 
-    override val fontSize: Float = fontSize
+    override var fontSize: Float = fontSize
         set(value) {
             tv_title.textSize = value * 0.75f
             tv_alt?.textSize = value
@@ -48,7 +43,10 @@ class MarkdownImageView private constructor(
         }
 
     override val spannableContent: Spannable
-        get() = tv_codeView.text as Spannable
+        get() = tv_title.text as Spannable
+
+    private lateinit var imageUrl: String
+    private lateinit var imageTitle: CharSequence
 
     //views
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
@@ -56,7 +54,7 @@ class MarkdownImageView private constructor(
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     val tv_title: MarkdownTextView
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    val tv_alt: TextView? = null
+    var tv_alt: TextView? = null
 
     @Px
     private val titleTopMargin: Int = context.dpToIntPx(8)
@@ -71,7 +69,7 @@ class MarkdownImageView private constructor(
     @ColorInt
     private val colorOnBackground: Int = context.attrValue(R.attr.colorOnBackground)
     @ColorInt
-    private val lineColor: Int = context.getColor(R.color.color_driver)
+    private val lineColor: Int = context.getColor(R.color.color_divider)
 
     //for draw object allocation
     private var linePositionY: Float = 0f
@@ -83,9 +81,9 @@ class MarkdownImageView private constructor(
     init {
         layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
         iv_image = ImageView(context).apply {
-            outlineProvider = object :: ViewOutlineProvider(){
+            outlineProvider = object : ViewOutlineProvider(){
                 override fun getOutline(view: View, outline: Outline){
-                    outtline.setRoundRect(
+                    outline.setRoundRect(
                         Rect(0, 0, view.measuredWidth, view.measuredHeight),
                         cornerRadius
                     )
@@ -135,16 +133,16 @@ class MarkdownImageView private constructor(
             }
             addView(tv_alt)
 
-            iv_image.setOnClickListener(
-                if (tv_alt.isVisible) animateHideAlt()
+            iv_image.setOnClickListener {
+                if (tv_alt!!.isVisible) animateHideAlt()
                 else animateShowAlt()
-            )
+            }
         }
     }
 
     @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int){
-        val usedHeight = 0
+    public override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int){
+        var usedHeight = 0
         val width = View.getDefaultSize(suggestedMinimumWidth, widthMeasureSpec)
 
         //create measureSpec for children EXACTLY
@@ -165,7 +163,7 @@ class MarkdownImageView private constructor(
 
     @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
     public override fun onLayout(changed: Boolean, l:Int, t:Int, r:Int, b:Int){
-        val usedHeight = 0
+        var usedHeight = 0
         val bodyWidth = r - l - paddingLeft - paddingRight
         val left = paddingLeft
         val right = paddingLeft + bodyWidth
@@ -188,7 +186,7 @@ class MarkdownImageView private constructor(
 
         tv_alt?.layout(
             left,
-            iv_image.measuredHeight - (tv_alt.measuredHeight ?: 0),
+            iv_image.measuredHeight - (tv_alt!!.measuredHeight ?: 0),
             right,
             iv_image.measuredHeight
         )

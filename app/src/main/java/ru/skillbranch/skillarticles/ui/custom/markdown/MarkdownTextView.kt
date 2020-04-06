@@ -7,7 +7,6 @@ import android.graphics.Rect
 import android.text.Spannable
 import android.text.Spanned
 import android.text.method.LinkMovementMethod
-import android.view.ViewGroup
 import android.widget.TextView
 import androidx.annotation.VisibleForTesting
 import androidx.core.graphics.withTranslation
@@ -17,11 +16,10 @@ import ru.skillbranch.skillarticles.extensions.dpToIntPx
 
 /**
  * Created by yasina on 10.03.2020.
- * Copyright (c) 2018 Infomatica. All rights reserved.
  */
 @SuppressLint("ViewConstructor")
 @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-class MarkdownTextView private constructor(
+class MarkdownTextView public constructor(
     context: Context,
     fontSize: Float,
     mockHelper: SearchBgHelper? = null //for mock
@@ -29,19 +27,19 @@ class MarkdownTextView private constructor(
 
     constructor(context: Context, fontSize: Float) : this(context, fontSize, null)
 
-    override val fontSize: Float = fontSize
+    override var fontSize: Float = fontSize
         set(value) {
             textSize = value
             field = value
         }
 
     override val spannableContent: Spannable
-        get() = tv_codeView.text as Spannable
+        get() = text as Spannable
 
     private val color: Int = context.attrValue(R.attr.colorOnBackground)
     private val focusRect = Rect()
 
-    private val searchBgHelper = SearchBgHelper(context){ top, bottom ->
+    private var searchBgHelper = SearchBgHelper(context){ top, bottom ->
         focusRect.set(0, top - context.dpToIntPx(56), width, bottom + context.dpToIntPx(56))
         //show rect on view with animation
         requestRectangleOnScreen(focusRect, false)

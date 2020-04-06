@@ -8,12 +8,10 @@ import androidx.lifecycle.MutableLiveData
 import ru.skillbranch.skillarticles.data.ArticleData
 import ru.skillbranch.skillarticles.data.ArticlePersonalInfo
 import ru.skillbranch.skillarticles.data.repositories.ArticleRepository
+import ru.skillbranch.skillarticles.data.repositories.MarkdownElement
 import ru.skillbranch.skillarticles.extensions.data.toAppSettings
 import ru.skillbranch.skillarticles.extensions.data.toArticlePersonalInfo
 import ru.skillbranch.skillarticles.extensions.format
-import ru.skillbranch.skillarticles.extensions.indexesOf
-import ru.skillbranch.skillarticles.markdown.MarkdownBuilder
-import ru.skillbranch.skillarticles.markdown.MarkdownParser
 import ru.skillbranch.skillarticles.viewmodels.base.BaseViewModel
 import ru.skillbranch.skillarticles.viewmodels.base.Event
 import ru.skillbranch.skillarticles.viewmodels.base.IViewModelState
@@ -132,11 +130,11 @@ class ArticleViewModel(private val articleId: String) : BaseViewModel<ArticleSta
 
     override fun handleSearch(query: String?) {
         query ?: return
-        if(clearContent == null) clearContent = MarkdownParser.clear(currentState.content)
-        val result = clearContent
-            .indexesOf(query)
-            .map{it to it + query.length}
-        updateState { it.copy(searchQuery = query, searchResults = result, searchPosition = 0) }
+//        todo if(clearContent == null) clearContent = MarkdownParser.clear(currentState.content)
+//        val result = clearContent
+//            .indexesOf(query)
+//            .map{it to it + query.length}
+//        updateState { it.copy(searchQuery = query, searchResults = result, searchPosition = 0) }
     }
 
     fun handleUpResult(){
@@ -147,8 +145,12 @@ class ArticleViewModel(private val articleId: String) : BaseViewModel<ArticleSta
         updateState { it.copy(searchPosition = it.searchPosition.inc()) }
     }
 
+    fun handleCopyCode(){
+        notify(Notify.TextMessage("Text copied"))
+    }
+
     //load text from network
-    override fun getArticleContent(): LiveData<String?> {
+    override fun getArticleContent(): LiveData<List<MarkdownElement>?> {
         return repository.loadArticleContent(articleId)
     }
 
@@ -184,7 +186,7 @@ data class ArticleState(
     val date: String? = null,
     val author: Any? = null,
     val poster: String? = null,
-    val content: String? = null,
+    val content: List<MarkdownElement> = emptyList(),
     val reviews: List<Any> = emptyList()
 ):IViewModelState{
 

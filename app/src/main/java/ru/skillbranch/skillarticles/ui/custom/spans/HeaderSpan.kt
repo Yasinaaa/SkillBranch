@@ -1,4 +1,4 @@
-package ru.skillbranch.skillarticles.markdown.spans
+package ru.skillbranch.skillarticles.ui.custom.spans
 
 import android.graphics.Canvas
 import android.graphics.Color
@@ -16,6 +16,7 @@ import androidx.annotation.VisibleForTesting
 
 
 class HeaderSpan constructor(
+
     @IntRange(from = 1, to = 6)
     private val level: Int,
     @ColorInt
@@ -28,6 +29,11 @@ class HeaderSpan constructor(
     private val marginBottom: Float
 ) :
     MetricAffectingSpan(), LineHeightSpan, LeadingMarginSpan {
+
+    lateinit var firstLineBounds: kotlin.ranges.IntRange
+    lateinit var lastLineBounds: kotlin.ranges.IntRange
+    var topExtraPadding = 0
+    var bottomExtraPadding = 0
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     val linePadding = 0.4f
